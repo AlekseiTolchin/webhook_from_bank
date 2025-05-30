@@ -38,7 +38,7 @@ class Payment(models.Model):
         verbose_name='ИНН плательщика',
         max_length=12,
     )
-    document_number =models.CharField(
+    document_number = models.CharField(
         verbose_name='Номер документа',
         max_length=20,
     )

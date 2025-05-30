@@ -26,12 +26,14 @@ class WebhookView(View):
                 return validated_data
 
             if self._is_duplicate_operation(validated_data['operation_id']):
-                return JsonResponse({'message': 'Operation already processed'}, status=200)
+                return JsonResponse(
+                    {'message': 'Operation already processed'}, status=200)
 
             with transaction.atomic():
                 self._process_payment(validated_data)
 
-            return JsonResponse({'message': 'Operation processed successfully'}, status=200)
+            return JsonResponse(
+                {'message': 'Operation processed successfully'}, status=200)
 
         except json.JSONDecodeError:
             return JsonResponse({'message': 'Invalid JSON'}, status=400)
@@ -43,9 +45,11 @@ class WebhookView(View):
             amount = Decimal(str(webhook['amount']))
             payer_inn = webhook['payer_inn']
             document_number = webhook['document_number']
-            document_date = datetime.strptime(webhook['document_date'], '%Y-%m-%dT%H:%M:%SZ')
+            document_date = datetime.strptime(
+                webhook['document_date'], '%Y-%m-%dT%H:%M:%SZ')
         except (KeyError, ValueError, TypeError):
-            return JsonResponse({'error': 'Invalid request data'}, status=400)
+            return JsonResponse(
+                {'error': 'Invalid request data'}, status=400)
 
         return {
             'operation_id': operation_id,
@@ -104,4 +108,5 @@ class OrganizationBalanceView(View):
                 'balance': float(organization.balance)
             })
         except Organization.DoesNotExist:
-            return JsonResponse({'message': 'Organization not found'}, status=404)
+            return JsonResponse(
+                {'message': 'Organization not found'}, status=404)
