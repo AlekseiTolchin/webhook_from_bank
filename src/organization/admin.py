@@ -10,7 +10,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('operation_id', 'amount')
+    list_display = ('organization', 'operation_id', 'amount')
 
 
 @admin.register(BalanceLog)

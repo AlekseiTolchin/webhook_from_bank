@@ -21,31 +21,31 @@ class WebhookView(View):
         try:
             payload = json.loads(request.body)
 
-            validated_data = self._validate_and_parse_data(payload)
+            validated_data = self._validate_and_parse_webhook(payload)
             if isinstance(validated_data, HttpResponse):
                 return validated_data
 
             if self._is_duplicate_operation(validated_data['operation_id']):
-                return HttpResponse('Operation already processed', status=200)
+                return JsonResponse({'message': 'Operation already processed'}, status=200)
 
             with transaction.atomic():
                 self._process_payment(validated_data)
 
-            return HttpResponse('Operation processed successfully', status=200)
+            return JsonResponse({'message': 'Operation processed successfully'}, status=200)
 
         except json.JSONDecodeError:
-            return HttpResponse('Invalid JSON', status=400)
+            return JsonResponse({'message': 'Invalid JSON'}, status=400)
 
-    def _validate_and_parse_data(self, data):
+    def _validate_and_parse_webhook(self, webhook):
         """Валидация и парсинг входящих данных"""
         try:
-            operation_id = UUID(data['operation_id'])
-            amount = Decimal(str(data['amount']))
-            payer_inn = data['payer_inn']
-            document_number = data['document_number']
-            document_date = datetime.strptime(data['document_date'], '%Y-%m-%dT%H:%M:%SZ')
+            operation_id = UUID(webhook['operation_id'])
+            amount = Decimal(str(webhook['amount']))
+            payer_inn = webhook['payer_inn']
+            document_number = webhook['document_number']
+            document_date = datetime.strptime(webhook['document_date'], '%Y-%m-%dT%H:%M:%SZ')
         except (KeyError, ValueError, TypeError):
-            return HttpResponse('Invalid request data', status=400)
+            return JsonResponse({'error': 'Invalid request data'}, status=400)
 
         return {
             'operation_id': operation_id,
@@ -68,7 +68,7 @@ class WebhookView(View):
             organization.balance = 0
             organization.save()
 
-        payment = Payment.objects.create(
+        Payment.objects.create(
             operation_id=validated_data['operation_id'],
             amount=validated_data['amount'],
             payer_inn=validated_data['payer_inn'],
@@ -104,4 +104,4 @@ class OrganizationBalanceView(View):
                 'balance': float(organization.balance)
             })
         except Organization.DoesNotExist:
-            return HttpResponse('Organization not found', status=404)
+            return JsonResponse({'message': 'Organization not found'}, status=404)
